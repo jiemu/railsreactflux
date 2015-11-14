@@ -4,12 +4,12 @@ TodoForm = React.createFactory React.createClass
   getInitialState: ->
     todoName: ''
 
-  onInputChange: (e) ->
+  onInputChange: (e)->
     @setState(todoName: e.target.value)
 
-  onInputKeyDown: (e) ->
+  onInputKeyDown: (e)->
     if e.keyCode == 13 && this.refs.todo.value.length
-      @props.submitTodo(this.refs.todo.value)
+      TodoActions.submitTodo(this.refs.todo.value)
       @setState(todoName: '')
 
   render: ->
@@ -24,51 +24,40 @@ TodoForm = React.createFactory React.createClass
         value: @state.todoName
 
 TodoListItem = React.createFactory React.createClass
-  render: ->
-    li className: 'list-item', 
-      a className: 'btn btn-primary', 'Check'
-      span className: 'list-text', @props.todo.name
+  onCheckTodo: ->
+    TodoActions.checkTodo(@props.todo.id)
 
+  render: ->
+    todoItemClasses = 'list-item'
+    todoItemClasses += ' checked' if @props.todo.checked
+    li className: todoItemClasses, 
+      a className: 'btn btn-primary', onClick: @onCheckTodo, 'Check'
+      span className: 'list-text', @props.todo.name
 
 TodoList = React.createFactory React.createClass
   render: ->
     ul className: 'list-unstyled',
       _.map @props.todos, (todo)=>
-        TodoListItem(todo: todo)
+        TodoListItem(key: "todo-#{todo.id}", todo: todo)
 
 window.TodoIndex = React.createClass
   getInitialState: ->
-  	todos: []
+    todos: []
 
   componentWillMount: ->
-  	@setState(todos: @props.todos)
+    TodoStore.listen(@onChange)
+    TodoActions.initData(@props)
 
-  submitTodo: (name) ->
-    $.ajax
-      type: 'POST'
-      url: '/todos'
-      data:
-        todo:
-          name: name
-          checked: false
-      success: (response) =>
-        @state.todos.push(response)
-        @setState(todos: @state.todos)
-        console.log(response)
-      error: (response) =>
-        console.log('error')
-        console.log(response)
+  componentWillUnmount: ->
+    TodoStore.unlisten(@onChange)
+
+  onChange: (state)->
+    @setState(state)
 
   render: ->
     div className: 'container',
       div className: 'row',
         div className: 'col-xs-12',
           h1 {}, 'Todo List'
-          TodoForm(submitTodo: @submitTodo)
-          TodoList(todo: @state.todos)
-          ul className: 'list-unstyled',
-            _.map @state.todos, (todo)=>
-              li className: 'list-item', 
-                a className: 'btn btn-primary', 'Check'
-                span className: 'list-text', todo.name
-
+          TodoForm()
+          TodoList(todos: @state.todos)

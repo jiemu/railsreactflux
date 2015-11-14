@@ -1,7 +1,9 @@
 class TodoActions
   constructor: ->
     @generateActions(
-      'initData'
+      'initData',
+      'submitTodo',
+      'checkTodo'
     )
 
 window.TodoActions = alt.createActions(TodoActions)
