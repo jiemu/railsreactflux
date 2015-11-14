@@ -1,0 +1,1 @@
+Todo.create! ([{name: "Todo Item 1", checked: false}, {name: "Todo Item 2", checked: false}, {name: "Todo Item3", checked: false}])
